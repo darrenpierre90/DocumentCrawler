@@ -33,13 +33,13 @@ def getURLContent(url):
         log.error(f"Unable to get content of the following URL:{url}.The requests return a status code of {response.status_code}")
         
 
-def downloadLink(url_source,url,destination="./4107/"):
+def downloadLink(url_source,url,destination="./"):
     log.info(f"Attempting to download:{url}")
     if not('http' in url):
        url=url_source+url
         
-    if('pdf' in url or "html" in url or "png" in url):
-        
+    if('pdf' in url):
+        destination='4601/'
         contents=getURLContent(url)
         filename=url.split('/')[-1]
         with open(destination+filename,"wb") as f:
@@ -47,23 +47,49 @@ def downloadLink(url_source,url,destination="./4107/"):
 
     else:
         log.info("{url} is not a downloadable pdf")
+
+
+def filterLinks(link):
+    if ('/wiki/index.php/Operating_Systems_2019F_Lecture_' in link.get('href')):
+        return True
+    else:
+        False
 def main():
+    
+    def filterLinks(link):
+        if ('/wiki/index.php/Operating_Systems_2019F_Lecture_' in link.get('href')):
+            return True
+        else:
+            False
     urls=['sikaman.dyndns.org:8888/courses/4601/index.html','http://people.scs.carleton.ca/~jeanpier/4004F19/','https://web.stanford.edu/class/cs276/']
     url="http://lass.cs.umass.edu/~shenoy/courses/377/lectures.html"
-    url='https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4107/handouts/'
-    url= 'https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4107//assignments/'
+    url='https://homeostasis.scs.carleton.ca/wiki/index.php/Operating_Systems_(Fall_2019)'
     urlContent= getURLContent(url)
 
     if(urlContent):
         PARSER=BeautifulSoup(urlContent, 'html.parser')
         info=f""
-        links=PARSER.find_all('a',href=True)
+        links=PARSER.find_all('a', href=True)
         log.info(f"The following url:{url} has the following links:")
         for link in links:
-            log.info(link.get('href'))
+            if ('/wiki/index.php/Operating_Systems_2019F_Lecture_' in link.get('href')):
+                log.info(link.get('href'))
 
-        for link in links:
-            downloadLink(url,link.get('href'))
+        filterLinks=filter(filterLinks,links)
+        for link in filterLinks:
+            
+            link=link.get('href')
+            log.info("https://https://homeostasis.scs.carleton.ca/"+str(link))
+
+            PARSER2=BeautifulSoup(getURLContent("https://homeostasis.scs.carleton.ca"+link), 'html.parser')
+            log.info(PARSER2.find('pre'))
+            fileContents=PARSER2.find('pre')
+            fileNameIndex=link.index('Operating_Systems_2019F_Lecture_')
+            fileName=link[fileNameIndex:] + ".txt"
+            with open(fileName,'w') as lectureNotes:
+                lectureNotes.write(str(fileContents))
+            
+     
         
 
 
